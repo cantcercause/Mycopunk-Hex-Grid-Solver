@@ -1,8 +1,9 @@
 # app.py
-from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QListWidget, QListWidgetItem, QLabel
+from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QListWidget, QListWidgetItem, QLabel, QSlider, QHBoxLayout
+from PyQt6.QtCore import Qt
 from hex_grid_widget import HexGridWidget
 # from solver import solve_shapes
-from solver import solve_all
+from solver import solve_all, solve_first
 import random 
 
 class HexSolverApp(QWidget):
@@ -29,6 +30,10 @@ class HexSolverApp(QWidget):
         self.mode_button.clicked.connect(self.next_shape)
         layout.addWidget(self.mode_button)
 
+        self.first_button = QPushButton("Find First Working Solution")
+        self.first_button.clicked.connect(self.find_first_solution)
+        layout.addWidget(self.first_button)
+
         self.solve_button = QPushButton("Solve")
         self.solve_button.clicked.connect(self.solve_puzzle)
         layout.addWidget(self.solve_button)
@@ -47,6 +52,16 @@ class HexSolverApp(QWidget):
 
         self.log_label = QLabel("")
         layout.addWidget(self.log_label)
+
+        # Max solutions slider
+        self.slider_label = QLabel("Max Solutions: 100")
+        layout.addWidget(self.slider_label)
+
+        self.solution_slider = QSlider(Qt.Orientation.Horizontal)
+        self.solution_slider.setRange(1, 1000)
+        self.solution_slider.setValue(100)
+        self.solution_slider.valueChanged.connect(self.update_slider_label)
+        layout.addWidget(self.solution_slider)
 
         self.setLayout(layout)
 
@@ -73,6 +88,25 @@ class HexSolverApp(QWidget):
         for i, shape in enumerate(self.hex_widget.shapes, 1):
             self.shape_list.addItem(f"Shape {i}: {len(shape)} hexes")
 
+    def find_first_solution(self):
+        board, shapes = self.hex_widget.get_board_and_shapes()
+
+        board_cells_count = len(board)
+        shapes_cells_count = sum(len(shape) for shape in shapes)
+
+        if shapes_cells_count > board_cells_count:
+            self.log(f"Unsolvable: Shapes cover {shapes_cells_count} cells but board only has {board_cells_count} cells.")
+            return
+
+        solution = solve_first(board, shapes)
+        if solution:
+            self.hex_widget.show_solution(solution)
+            self.all_solutions = [solution]
+            self.solution_index = 0
+            self.log("First working solution found and displayed.")
+        else:
+            self.log("No solution found.")
+
     def solve_puzzle(self):
         board, shapes = self.hex_widget.get_board_and_shapes()
 
@@ -84,7 +118,8 @@ class HexSolverApp(QWidget):
             return
 
 
-        self.all_solutions = solve_all(board, shapes)
+        max_solutions = self.solution_slider.value()
+        self.all_solutions = solve_all(board, shapes, max_solutions=max_solutions)
         self.solution_index = 0
 
         if self.all_solutions:
@@ -121,6 +156,10 @@ class HexSolverApp(QWidget):
 
     def log(self, text):
         self.log_label.setText(text)
+
+    def update_slider_label(self):
+        value = self.solution_slider.value()
+        self.slider_label.setText(f"Max Solutions: {value}")
 
 if __name__ == "__main__":
     app = QApplication([])

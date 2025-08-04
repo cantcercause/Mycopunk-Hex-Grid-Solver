@@ -14,7 +14,8 @@ class HexGridWidget(QWidget):
         self.mode = "board"  # or "shape"
         self.saved_board = set()
         self.board_confirmed = False
-
+        self.mouse_down = False
+        self.last_painted = set()
         self.setMinimumSize(600, 600)
 
     def axial_to_pixel(self, q, r):
@@ -92,13 +93,33 @@ class HexGridWidget(QWidget):
         )
 
     def mousePressEvent(self, event: QMouseEvent):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.mouse_down = True
+            self.last_painted.clear()
+            self._paint_tile(event)
+
+    def mouseMoveEvent(self, event: QMouseEvent):
+        if self.mouse_down:
+            self._paint_tile(event)
+
+    def mouseReleaseEvent(self, event: QMouseEvent):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.mouse_down = False
+            self.last_painted.clear()
+
+    def _paint_tile(self, event: QMouseEvent):
         x = event.position().x()
         y = event.position().y()
         q, r = self.pixel_to_axial(x, y)
 
+        if (q, r) in self.last_painted:
+            return
+
+        self.last_painted.add((q, r))
+
         if self.mode == "board":
-            if getattr(self, "board_confirmed", False):
-                return  # ignore clicks on board if confirmed
+            if self.board_confirmed:
+                return
             if (q, r) in self.board_cells:
                 self.board_cells.remove((q, r))
             else:
@@ -108,6 +129,7 @@ class HexGridWidget(QWidget):
                 self.current_shape.remove((q, r))
             else:
                 self.current_shape.add((q, r))
+
         self.update()
 
     def get_board_and_shapes(self):

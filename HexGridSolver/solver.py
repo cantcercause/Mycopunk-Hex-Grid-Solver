@@ -28,7 +28,7 @@ def generate_rotations(shape):
         rotations.add(normalized)
     return [list(r) for r in rotations]
 
-def solve_all(board, shapes, placed=None):
+def solve_all(board, shapes, placed=None, max_solutions=1000):
     if placed is None:
         placed = []
 
@@ -47,7 +47,35 @@ def solve_all(board, shapes, placed=None):
             if can_place(board, rotated, anchor):
                 shape_cells = place_shape(anchor, rotated)
                 new_board = board - shape_cells
-                result = solve_all(new_board, shapes[1:], placed + [(rotated, anchor)])
-                all_solutions.extend(result)
+                result = solve_all(new_board, shapes[1:], placed + [(rotated, anchor)], max_solutions)
+
+                for sol in result:
+                    all_solutions.append(sol)
+                    if len(all_solutions) >= max_solutions:
+                        return all_solutions
 
     return all_solutions
+
+def solve_first(board, shapes, placed=None):
+    if placed is None:
+        placed = []
+
+    if not shapes:
+        return placed
+
+    # Early pruning
+    if sum(len(s) for s in shapes) > len(board):
+        return None
+
+    shape = shapes[0]
+
+    for rotated in generate_rotations(shape):
+        for anchor in board:
+            if can_place(board, rotated, anchor):
+                shape_cells = place_shape(anchor, rotated)
+                new_board = board - shape_cells
+                result = solve_first(new_board, shapes[1:], placed + [(rotated, anchor)])
+                if result:
+                    return result
+
+    return None

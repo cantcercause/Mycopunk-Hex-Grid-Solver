@@ -1,5 +1,5 @@
 # app.py
-from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QListWidget, QListWidgetItem, QLabel, QSlider, QHBoxLayout
+from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QListWidget, QListWidgetItem, QLabel, QSlider, QHBoxLayout, QCheckBox
 from PyQt6.QtCore import Qt
 from hex_grid_widget import HexGridWidget
 # from solver import solve_shapes
@@ -63,6 +63,10 @@ class HexSolverApp(QWidget):
         self.solution_slider.valueChanged.connect(self.update_slider_label)
         layout.addWidget(self.solution_slider)
 
+        self.rotation_checkbox = QCheckBox("Enable Rotation")
+        self.rotation_checkbox.setChecked(True)  # Default: rotation ON
+        layout.addWidget(self.rotation_checkbox)
+
         self.setLayout(layout)
 
     def confirm_board(self):
@@ -98,7 +102,9 @@ class HexSolverApp(QWidget):
             self.log(f"Unsolvable: Shapes cover {shapes_cells_count} cells but board only has {board_cells_count} cells.")
             return
 
-        solution = solve_first(board, shapes)
+        allow_rotation = self.rotation_checkbox.isChecked()
+        solution = solve_first(board, shapes, allow_rotation=allow_rotation)
+
         if solution:
             self.hex_widget.show_solution(solution)
             self.all_solutions = [solution]
@@ -119,7 +125,8 @@ class HexSolverApp(QWidget):
 
 
         max_solutions = self.solution_slider.value()
-        self.all_solutions = solve_all(board, shapes, max_solutions=max_solutions)
+        allow_rotation = self.rotation_checkbox.isChecked()
+        self.all_solutions = solve_all(board, shapes, max_solutions=max_solutions, allow_rotation=allow_rotation)
         self.solution_index = 0
 
         if self.all_solutions:

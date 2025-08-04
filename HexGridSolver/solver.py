@@ -28,7 +28,7 @@ def generate_rotations(shape):
         rotations.add(normalized)
     return [list(r) for r in rotations]
 
-def solve_all(board, shapes, placed=None, max_solutions=1000):
+def solve_all(board, shapes, placed=None, max_solutions=1000, allow_rotation=True):
     if placed is None:
         placed = []
 
@@ -42,13 +42,14 @@ def solve_all(board, shapes, placed=None, max_solutions=1000):
     all_solutions = []
     shape = shapes[0]
 
-    for rotated in generate_rotations(shape):
+    rotations = generate_rotations(shape) if allow_rotation else [normalize(shape)]
+
+    for rotated in rotations:
         for anchor in board:
             if can_place(board, rotated, anchor):
                 shape_cells = place_shape(anchor, rotated)
                 new_board = board - shape_cells
-                result = solve_all(new_board, shapes[1:], placed + [(rotated, anchor)], max_solutions)
-
+                result = solve_all(new_board, shapes[1:], placed + [(rotated, anchor)], max_solutions, allow_rotation)
                 for sol in result:
                     all_solutions.append(sol)
                     if len(all_solutions) >= max_solutions:
@@ -56,7 +57,7 @@ def solve_all(board, shapes, placed=None, max_solutions=1000):
 
     return all_solutions
 
-def solve_first(board, shapes, placed=None):
+def solve_first(board, shapes, placed=None, allow_rotation=True):
     if placed is None:
         placed = []
 
@@ -68,13 +69,14 @@ def solve_first(board, shapes, placed=None):
         return None
 
     shape = shapes[0]
+    rotations = generate_rotations(shape) if allow_rotation else [normalize(shape)]
 
-    for rotated in generate_rotations(shape):
+    for rotated in rotations:
         for anchor in board:
             if can_place(board, rotated, anchor):
                 shape_cells = place_shape(anchor, rotated)
                 new_board = board - shape_cells
-                result = solve_first(new_board, shapes[1:], placed + [(rotated, anchor)])
+                result = solve_first(new_board, shapes[1:], placed + [(rotated, anchor)], allow_rotation)
                 if result:
                     return result
 

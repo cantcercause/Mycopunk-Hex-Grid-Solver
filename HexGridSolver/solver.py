@@ -22,8 +22,9 @@ def solve_shapes(board, shapes, placed=[]):
         return placed
 
     shape = shapes[0]
+    normalized_base = normalize(shape)  # Only normalize once
     for rot in range(6):
-        rotated = normalize(rotate(shape, rot))
+        rotated = rotate(normalized_base, rot)
         for cell in board:
             if can_place(board, rotated, cell):
                 shape_cells = place_shape(cell, rotated)

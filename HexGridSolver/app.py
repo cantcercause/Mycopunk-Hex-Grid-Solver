@@ -43,8 +43,11 @@ class HexSolverApp(QWidget):
     def confirm_board(self):
         self.hex_widget.saved_board = set(self.hex_widget.board_cells)
         self.hex_widget.board_confirmed = True
+        self.board_button.setEnabled(False)  # Disable the button
+        self.hex_widget.mode = "shape"       # Switch to shape mode
         print(f"Board confirmed with {len(self.hex_widget.saved_board)} cells.")
         self.log(f"Board confirmed with {len(self.hex_widget.saved_board)} cells.")
+        self.hex_widget.update()
 
     def next_shape(self):
         # Save current shape from hex widget

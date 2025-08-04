@@ -41,7 +41,7 @@ class HexSolverApp(QWidget):
         self.reset_shapes_button.clicked.connect(self.reset_shapes_only)
         layout.addWidget(self.reset_shapes_button)
 
-        self.reset_button = QPushButton("Reset Board & Shapes")
+        self.reset_button = QPushButton("Reset Board and Shapes")
         self.reset_button.clicked.connect(self.reset_all)
         layout.addWidget(self.reset_button)
 

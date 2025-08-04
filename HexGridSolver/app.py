@@ -1,11 +1,17 @@
 # app.py
 from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QListWidget, QListWidgetItem, QLabel
 from hex_grid_widget import HexGridWidget
-from solver import solve_shapes
+# from solver import solve_shapes
+from solver import solve_all
+import random 
 
 class HexSolverApp(QWidget):
     def __init__(self):
         super().__init__()
+
+        self.all_solutions = []
+        self.solution_index = 0
+
         self.setWindowTitle("Hex Puzzle Solver")
         layout = QVBoxLayout()
 
@@ -26,6 +32,10 @@ class HexSolverApp(QWidget):
         self.solve_button = QPushButton("Solve")
         self.solve_button.clicked.connect(self.solve_puzzle)
         layout.addWidget(self.solve_button)
+
+        self.reroll_button = QPushButton("Reroll Solution")
+        self.reroll_button.clicked.connect(self.reroll_solution)
+        layout.addWidget(self.reroll_button)
 
         self.reset_shapes_button = QPushButton("Reset Shapes Only")
         self.reset_shapes_button.clicked.connect(self.reset_shapes_only)
@@ -70,17 +80,33 @@ class HexSolverApp(QWidget):
         shapes_cells_count = sum(len(shape) for shape in shapes)
 
         if shapes_cells_count > board_cells_count:
-            print(f"Unsolvable: Shapes cover {shapes_cells_count} cells but board only has {board_cells_count} cells.")
             self.log(f"Unsolvable: Shapes cover {shapes_cells_count} cells but board only has {board_cells_count} cells.")
             return
 
-        solution = solve_shapes(board, shapes)
-        if solution:
-            self.hex_widget.show_solution(solution)
-            self.log("Solution found and displayed.")
+
+        self.all_solutions = solve_all(board, shapes)
+        self.solution_index = 0
+
+        if self.all_solutions:
+            self.hex_widget.show_solution(self.all_solutions[0])
+            self.log(f"Solution 1 of {len(self.all_solutions)} displayed.")
         else:
-            print("No solution found.")
             self.log("No solution found.")
+
+    def reroll_solution(self):
+        if not self.all_solutions:
+            self.log("No solutions available to reroll.")
+            return
+
+        new_index = self.solution_index
+        if len(self.all_solutions) > 1:
+            while new_index == self.solution_index:
+                new_index = random.randint(0, len(self.all_solutions) - 1)
+
+        self.solution_index = new_index
+        solution = self.all_solutions[self.solution_index]
+        self.hex_widget.show_solution(solution)
+        self.log(f"Random solution {self.solution_index + 1} of {len(self.all_solutions)} displayed.")
 
     def reset_shapes_only(self):
         self.hex_widget.reset_shapes()

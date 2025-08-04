@@ -27,7 +27,11 @@ class HexSolverApp(QWidget):
         self.solve_button.clicked.connect(self.solve_puzzle)
         layout.addWidget(self.solve_button)
 
-        self.reset_button = QPushButton("Reset")
+        self.reset_shapes_button = QPushButton("Reset Shapes Only")
+        self.reset_shapes_button.clicked.connect(self.reset_shapes_only)
+        layout.addWidget(self.reset_shapes_button)
+
+        self.reset_button = QPushButton("Reset Board & Shapes")
         self.reset_button.clicked.connect(self.reset_all)
         layout.addWidget(self.reset_button)
 
@@ -74,6 +78,11 @@ class HexSolverApp(QWidget):
         else:
             print("No solution found.")
             self.log("No solution found.")
+
+    def reset_shapes_only(self):
+        self.hex_widget.reset_shapes()
+        self.shape_list.clear()
+        self.log("Shapes reset. Board remains unchanged.")
 
     def reset_all(self):
         self.hex_widget.reset_all()

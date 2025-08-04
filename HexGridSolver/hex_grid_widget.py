@@ -137,8 +137,16 @@ class HexGridWidget(QWidget):
             self.current_shape.clear()
         self.update()
 
+    def reset_shapes(self):
+        self.shapes.clear()
+        self.current_shape.clear()
+        self.solution_cells = []
+        self.update()
+
     def reset_all(self):
         self.board_cells.clear()
+        self.saved_board.clear()
+        self.board_confirmed = False
         self.shapes.clear()
         self.current_shape.clear()
         self.solution_cells = []

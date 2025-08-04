@@ -6,7 +6,7 @@ def rotate(shape, times=1):
 def normalize(shape):
     min_q = min(q for q, r in shape)
     min_r = min(r for q, r in shape)
-    return sorted([(q - min_q, r - min_r) for q, r in shape])
+    return sorted((q - min_q, r - min_r) for q, r in shape)
 
 def can_place(board, shape, anchor):
     aq, ar = anchor
@@ -17,14 +17,32 @@ def place_shape(anchor, shape):
     aq, ar = anchor
     return {(aq + dq, ar + dr) for dq, dr in shape}
 
-def solve_shapes(board, shapes, placed=[]):
+def generate_rotations(shape):
+    """Return list of all 6 normalized rotations (no duplicates)."""
+    normalized = normalize(shape)
+    rotations = set()
+    current = normalized
+    for _ in range(6):
+        current = rotate(current)
+        normalized_rot = tuple(normalize(current))
+        rotations.add(normalized_rot)
+    return [list(rot) for rot in rotations]
+
+def solve_shapes(board, shapes, placed=None):
+    if placed is None:
+        placed = []
+
     if not shapes:
         return placed
 
+    # Early pruning (optional but useful)
+    board_area = len(board)
+    remaining_area = sum(len(s) for s in shapes)
+    if remaining_area > board_area:
+        return None
+
     shape = shapes[0]
-    normalized_base = normalize(shape)  # Only normalize once
-    for rot in range(6):
-        rotated = rotate(normalized_base, rot)
+    for rotated in generate_rotations(shape):
         for cell in board:
             if can_place(board, rotated, cell):
                 shape_cells = place_shape(cell, rotated)
@@ -32,4 +50,5 @@ def solve_shapes(board, shapes, placed=[]):
                 result = solve_shapes(new_board, shapes[1:], placed + [(rotated, cell)])
                 if result:
                     return result
+
     return None

@@ -90,6 +90,7 @@ class HexSolverApp(QWidget):
     def reset_all(self):
         self.hex_widget.reset_all()
         self.shape_list.clear()
+        self.board_button.setEnabled(True) 
         self.log("Board and shapes reset.")
 
     def log(self, text):
